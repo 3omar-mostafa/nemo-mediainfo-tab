@@ -14,8 +14,8 @@ jobs:
     - name: Install Dependencies
       run: sudo apt update && sudo apt install debhelper fakeroot
       
-    - name: Clear Repo
-      run: rm -rv ./nemo-mediainfo-tab/.*
+    - name: Clean Repo
+      run: rm -rv ./nemo-mediainfo-tab/.git*
     
     - name: Create .deb package
       run: |
