@@ -1,0 +1,37 @@
+name: Package & Release
+
+on: [push]
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        path: nemo-mediainfo-tab
+    
+    - name: Install Dependencies
+      run: sudo apt update && sudo apt install debhelper fakeroot
+      
+    - name: Clear Repo
+      run: rm -rv ./nemo-mediainfo-tab/.*
+    
+    - name: Create .deb package
+      run: |
+        cd nemo-mediainfo-tab
+        fakeroot dh binary
+    
+    - name: Export VERSION ENV variable
+      run: | 
+        version=$(dpkg-deb -f nemo-mediainfo-tab_*.deb Version)
+        echo "VERSION=${version}" >> $GITHUB_ENV
+
+    - name: Release Package
+      uses: softprops/action-gh-release@v1
+      with:
+        name: "nemo-mediainfo-tab v${{ env.VERSION }}"
+        tag_name: ${{ env.VERSION }}
+        files: nemo-mediainfo-tab_*.deb
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
