@@ -18,5 +18,6 @@ Depends: ${python:Depends},
          nemo,
          python-nemo | nemo-python,
          nemo,
-         python3-mediainfodll
+         python3-mediainfodll,
+         python3-magic
 Description: View media information from the properties tab

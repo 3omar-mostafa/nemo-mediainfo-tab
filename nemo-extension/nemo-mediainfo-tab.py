@@ -11,6 +11,7 @@ except ImportError:
 from gi.repository import GObject, Gtk, Nemo
 
 from MediaInfoDLL3 import *
+import magic
 
 lang = locale.getdefaultlocale()[0]
 locale_path = os.path.join(os.path.dirname(__file__), "nemo-mediainfo-tab/locale")
@@ -76,6 +77,11 @@ class MediainfoPropertyPage(GObject.GObject, Nemo.PropertyPageProvider, Nemo.Nam
     MI.Close()
     if len(info) < 8:
       return
+
+    file_type: str = magic.from_file(filename, mime=True)
+    if file_type.startswith("image") :
+      return
+
 
     locale.setlocale(locale.LC_ALL, '')
     gettext.bindtextdomain("nemo-extensions")
