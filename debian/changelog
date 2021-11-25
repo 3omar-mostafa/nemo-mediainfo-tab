@@ -1,3 +1,9 @@
+nemo-mediainfo-tab (1.0.5) focal; urgency=medium
+
+  * Disable showing tab for image files
+
+ -- Omar Mostafa <3omar.7afez2022@gmail.com>  Thu, 25 Nov 2021 22:51:35 +0200
+
 nemo-mediainfo-tab (1.0.4) focal; urgency=medium
 
   * Optional Char Wrap on long strings
