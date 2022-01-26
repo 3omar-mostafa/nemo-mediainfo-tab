@@ -12,6 +12,9 @@ from gi.repository import GObject, Gtk, Nemo
 
 from MediaInfoDLL3 import *
 import magic
+import subprocess
+import json
+
 
 lang = locale.getdefaultlocale()[0]
 locale_path = os.path.join(os.path.dirname(__file__), "nemo-mediainfo-tab/locale")
@@ -49,6 +52,38 @@ GUI = """
 
 class MediainfoPropertyPage(GObject.GObject, Nemo.PropertyPageProvider, Nemo.NameAndDescProvider):
 
+
+  def run(self, cmd):
+      try:
+          result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
+          return 0, result
+      except subprocess.CalledProcessError as proc:
+          return proc.returncode, proc.stdout
+
+
+  def add_row(self, tag, value):
+    label = Gtk.Label()
+    label.set_markup("<b>" + tag + "</b>")
+    label.set_justify(Gtk.Justification.LEFT)
+    label.set_halign(Gtk.Align.START)
+    label.set_selectable(True)
+    label.show()
+    self.grid.attach(label, 0, self.top, 1, 1)
+
+    label = Gtk.Label()
+    label.set_text(value)
+    label.set_justify(Gtk.Justification.LEFT)
+    label.set_halign(Gtk.Align.START)
+    label.set_selectable(True)
+    label.set_line_wrap(True)
+    label.set_line_wrap_mode(2) #PANGO_WRAP_WORD_CHAR
+    #label.set_max_width_chars(160)
+    label.show()
+    self.grid.attach(label, 1, self.top, 1, 1)
+
+    self.top += 1
+
+
   def get_property_pages(self, files):
     # files: list of NemoVFSFile
     if len(files) != 1:
@@ -82,6 +117,10 @@ class MediainfoPropertyPage(GObject.GObject, Nemo.PropertyPageProvider, Nemo.Nam
     if file_type.startswith("image") :
       return
 
+    exif_data = self.run(f"exiftool -n -g2 -j '{filename}'")
+    exif_data = json.loads(exif_data[1])[0]
+    exif_data.pop("SourceFile", None)
+    exif_data.pop("ExifTool", None)
 
     locale.setlocale(locale.LC_ALL, '')
     gettext.bindtextdomain("nemo-extensions")
@@ -98,29 +137,28 @@ class MediainfoPropertyPage(GObject.GObject, Nemo.PropertyPageProvider, Nemo.Nam
     self.mainWindow = self.builder.get_object("mainWindow")
     self.grid = self.builder.get_object("grid")
 
-    top = 0
+    self.top = 0
+
     for line in info:
       tag = line[:41].strip()
       if tag not in excludeList:
-        label = Gtk.Label()
-        label.set_markup("<b>" + tag + "</b>")
-        label.set_justify(Gtk.Justification.LEFT)
-        label.set_halign(Gtk.Align.START)
-        label.show()
-        self.grid.attach(label, 0, top, 1, 1)
-        label = Gtk.Label()
-        label.set_text(line[42:].strip())
-        label.set_justify(Gtk.Justification.LEFT)
-        label.set_halign(Gtk.Align.START)
-        label.set_selectable(True)
-        label.set_line_wrap(True)
-        label.set_line_wrap_mode(2) #PANGO_WRAP_WORD_CHAR
-        #label.set_max_width_chars(160)
-        label.show()
-        self.grid.attach(label, 1, top, 1, 1)
-        top += 1
+        self.add_row(tag, line[42:].strip())
+
+    self.add_row("", "")
+    self.add_row("ExifTool Data", "")
+    for tag, value in exif_data.items():
+      if isinstance(value, dict):
+        self.add_row("", "")
+        self.add_row(tag, "")
+        for tag2, value2 in value.items():
+          self.add_row(str(tag2), str(value2))
+      else:
+        self.add_row(tag, "")
+
+    self.add_row("", "")
 
     return Nemo.PropertyPage(name="NemoPython::mediainfo", label=self.property_label, page=self.mainWindow),
 
   def get_name_and_desc(self):
     return [("Nemo Media Info Tab:::View media information from the properties tab")]
+

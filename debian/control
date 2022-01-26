@@ -19,5 +19,6 @@ Depends: ${python:Depends},
          python-nemo | nemo-python,
          nemo,
          python3-mediainfodll,
-         python3-magic
+         python3-magic,
+         libimage-exiftool-perl
 Description: View media information from the properties tab

@@ -1,3 +1,9 @@
+nemo-mediainfo-tab (1.0.6) focal; urgency=medium
+
+  * Added Exiftool data to output
+
+ -- Omar Mostafa <3omar.7afez2022@gmail.com>  Thu, 25 Nov 2021 22:51:35 +0200
+
 nemo-mediainfo-tab (1.0.5) focal; urgency=medium
 
   * Disable showing tab for image files
